@@ -1,4 +1,3 @@
-setwd("~/Documents/NYUAD/MM_Liver_Regeneration/ChromHMM")
 library(genomation)
 library(pheatmap)
 library('biomaRt')
@@ -8,7 +7,7 @@ library(ggplot2)
 
 ### seperate in-house 6 states
 # add strand as '*' into column 4 before readBed
-ES_file <- readBed('./ChromHMM_inhouse/Mouse_liver_6_segments.bed')
+ES_file <- readBed('./Mouse_liver_6_segments.bed')
 head(ES_file)
 ES1 <- ES_file[grepl('E1', ES_file$score), ]
 ES2 <- ES_file[ES_file$score == 'E2', ]
@@ -62,12 +61,12 @@ legend("topright", lbls, cex=1.0, fill=pal)
 c(13.09, 15.48, 46.56, 24.87) * sum(width(gl[[1]]))/100
 =========================================================================================
 ### expression
-wt_fpkm <- read.csv('../Mouse_RNAseq/FPKMs/Mfuzz/WT_FPKM_mean.csv', sep='\t', header=T)
+wt_fpkm <- read.csv('./WT_FPKM_mean.csv', sep='\t', header=T)
 ### Sig_DEG_afterPH
 library(xlsx)
 sig_genes <- c()
 for ( i in 1:8){ 
-  dat <- read.xlsx('../Regeneration/Sig_DEG_afterPH_eachT.xlsx', sheetIndex = i)
+  dat <- read.xlsx('./Sig_DEG_afterPH_eachT.xlsx', sheetIndex = i)
   sig_genes <- c(sig_genes, as.character(dat$ensembl))
   sig_genes <- unique(sig_genes) # 2179 sig genes in 7 comparision
 }
@@ -163,8 +162,8 @@ df_p200$fpkm <- ifelse(df_p200$fpkm > 200, 200, df_p200$fpkm)
 p <- ggplot(df_p200, aes(state, fpkm))+ geom_jitter(alpha = I(1 / 2)) + ylim(0, 200)
 p
 ### ============input liver genes
-lvr_gene <- read.delim('../Functional Gene List/Curated_LiverGenes.txt')
-lvr_enriched_gene <- read.delim('../Functional Gene List/Liver_TissueEnriched.tsv')
+lvr_gene <- read.delim('../Curated_LiverGenes.txt')
+lvr_enriched_gene <- read.delim('../Liver_TissueEnriched.tsv')
 ### convert hg lvr gene to mm ensembl ID
 ensembl <- useMart('ensembl')  # using ensembl database data
 mart_mm <- useDataset('mmusculus_gene_ensembl', useMart('ensembl'))
@@ -202,7 +201,7 @@ barplot(as.matrix(dat_Num_Exp), ylim = c(1000,8000))
 #p_k27 <- ggplot(df_p200, aes(state, fpkm, col=k27)) + geom_jitter(alpha = I(1 / 2)) + 
 #  ylim(0, 200) + scale_color_manual(values=c("#999999","red")) + theme_classic()
 #p_k27
-K27_WT_2nd <- readPeakFile('../Regeneration/Peak_Comparison/Encode_macs2/WT_K27_S26_macs2/WT_K27_S26_macs2_peaks.broadPeak', head=F)
+K27_WT_2nd <- readPeakFile('../WT_K27_S26_macs2_peaks.broadPeak', head=F)
 
 k27_anno <- as.data.frame(annotatePeak(K27_WT_2nd, 
                                           TxDb = TxDb.Mmusculus.UCSC.mm10.knownGene,
@@ -225,23 +224,6 @@ df1$k27 <- df1$ensembl %in% k27_id$ENSEMBL
 p_bp <- ggplot(df1, aes(x=k27, y=log(fpkm+1))) + 
   geom_violin()
 p_bp
-======================================================================================
-###summarize chromatin states of 6 clusters of genes from Dev Cell paper
-# input cluster spreadsheet 
-clus_dat <- read.csv('~/Documents/NYUAD/MM_Liver_Regeneration/Mouse_RNAseq/FPKMs/Mfuzz/6_clusters_group.csv')
-head(df)
-# make 
-clus1 <- clus_dat[clus_dat$cluster=='1', ]
-table(df[df$ensembl %in% clus1$X, ]$state)
-
-clus2 <- clus_dat[clus_dat$cluster=='2', ]
-table(df[df$ensembl %in% clus2$X, ]$state)
-
-clus3 <- clus_dat[clus_dat$cluster=='3', ]
-table(df[df$ensembl %in% clus3$X, ]$state)
-
-clus6 <- clus_dat[clus_dat$cluster=='6', ]
-table(df[df$ensembl %in% clus6$X, ]$state)
 ================================================================================================
 ### df is with fpkm, state and ensembl id
 head(df)
@@ -253,53 +235,6 @@ edb <- EnsDb.Mmusculus.v79  # abbreviate
 ensembl_genes <- genes(edb)
 ensembl_genes
 sub_genes <-  subset(ensembl_genes, gene_id %in% df$ensembl)
-#====Superviesed GO Analysis======================================================
-### Input gene category
-### 1 lvr functional
-lvr_func <- unique(mm_lvr_gene$Gene.stable.ID.1)
-### 2 input spreadsheet of Amigo
-RNA_proc <- read.delim('../Functional Gene List/RNA_Processing_Gene_mm', header = F)
-### convert mgi_symbol to ensembl
-RNA_proc <- getBM(filters= "mgi_symbol", attributes= c( "mgi_symbol","ensembl_gene_id"),
-      values=unique(RNA_proc$V1), mart= mart_mm)
-RNA_proc <- unique(RNA_proc$ensembl_gene_id)
-### 3 Immunne response
-Immune_res <- read.delim('../Functional Gene List/Immune_responnse_Gene_mm', header=F)
-Immune_res <- getBM(filters= "mgi_symbol", attributes= c( "mgi_symbol","ensembl_gene_id"),
-                  values=unique(Immune_res$V1), mart= mart_mm)
-Immune_res <- unique(Immune_res$ensembl_gene_id)
-### 4 Binding TF
-Binding_tf <- read.delim('../Functional Gene List/DNA-binding_TF_gene_mm', header=F)
-Binding_tf <- getBM(filters= "mgi_symbol", attributes= c( "mgi_symbol","ensembl_gene_id"),
-                    values=unique(Binding_tf$V1), mart= mart_mm)
-Binding_tf <- unique(Binding_tf$ensembl_gene_id)
-### 5 DNA damage response
-DNA_dam_res <- read.delim('../Functional Gene List/DNA_damage_response_gene_mm', header=F)
-DNA_dam_res <- getBM(filters= "mgi_symbol", attributes= c( "mgi_symbol","ensembl_gene_id"),
-                    values=unique(DNA_dam_res$V1), mart= mart_mm)
-DNA_dam_res <- unique(DNA_dam_res$ensembl_gene_id)
-### 6 Cell cycle and DNA replication 
-Cell_cyc <- read.delim('../Functional Gene List/CellCycle_gene_mm', header=F)
-DNA_rep <- read.delim('../Functional Gene List/DNA_replication_gene_mm', header=F)
-Cell_DNA <- unique(Cell_cyc$V1, DNA_rep$V1)
-Cell_DNA <- getBM(filters= "mgi_symbol", attributes= c( "mgi_symbol","ensembl_gene_id"),
-                     values=Cell_DNA, mart= mart_mm)
-Cell_DNA <- unique(Cell_DNA$ensembl_gene_id)
-### Statistic
-### GS[[1]] != sum(df$state=='ES1'), because df was filtered by fpkm
-S_num <- c(nrow(GS[[1]]), nrow(GS[[2]]), nrow(GS[[3]]), 
-           nrow(GS[[4]]), nrow(GS[[5]]), nrow(GS[[6]]))
-func_list <- list(lvr_func, RNA_proc, Immune_res, 
-               Binding_tf, DNA_dam_res, Cell_DNA)
-func_num <- list()
-for (i in 1:6){
- func_num[[i]] <- c(sum(GS[[1]]$ENSEMBL %in% func_list[[i]]),
-                    sum(GS[[2]]$ENSEMBL %in% func_list[[i]]),
-                    sum(GS[[3]]$ENSEMBL %in% func_list[[i]]),
-                    sum(GS[[4]]$ENSEMBL %in% func_list[[i]]),
-                    sum(GS[[5]]$ENSEMBL %in% func_list[[i]]),
-                    sum(GS[[6]]$ENSEMBL %in% func_list[[i]]))
-}
 
 #====6 States GO Analysis=================================================================================
 library(clusterProfiler)
@@ -421,5 +356,5 @@ df12 <- data.frame(seqnames = S12_neg_Gene_bed$chromosome_name,
                   scores = S12_neg_Gene_bed$ensembl_gene_id,
                   names = S12_neg_Gene_bed$mgi_symbol,
                   strands = S12_neg_Gene_bed$strand)
-write.table(df12, file="ChromHMM_inhouse/6-state-gene_bed/S12_neg_Gene.bed", quote=F, sep="\t", row.names=F, col.names=F)
+write.table(df12, file="S12_neg_Gene.bed", quote=F, sep="\t", row.names=F, col.names=F)
 
