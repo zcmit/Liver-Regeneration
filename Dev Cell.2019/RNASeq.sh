@@ -6,8 +6,8 @@ global:
   - by_sample_outdir: '1'
   - find_by_dir: '1'
   - analysis_dir: data/analysis_LV/
-  - REFERENCE: '/scratch/Reference_Genomes/Public/Vertebrate_other/Danio_rerio/ENSEMBL_release_84/Danio_rerio.GRCz10.dna.toplevel'
-  - ANNOTATION: '/scratch/Reference_Genomes/Public/Vertebrate_other/Danio_rerio/ENSEMBL_release_84/Danio_rerio.GRCz10.84.gtf'
+  - REFERENCE: '/scratch/Reference_Genomes/Public/Vertebrate_mammalian/Mus_musculus/ENSEMBL-release-82-GRCm38/Mus_musculus.GRCm38.dna.toplevel'
+  - ANNOTATION: '/scratch/Reference_Genomes/Public/Vertebrate_mammalian/Mus_musculus/ENSEMBL_release_82-GRCm38/Mus_musculus.GRCm38.82.gtf'
   - HPC:
       - module: gencore gencore_dev gencore_rnaseq
       - partition: serial
